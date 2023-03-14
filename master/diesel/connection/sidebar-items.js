@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TransactionDepthChange","TransactionManagerStatus"],"mod":["statement_cache"],"struct":["AnsiTransactionManager","DefaultLoadingMode","ValidTransactionManagerStatus"],"trait":["BoxableConnection","Connection","ConnectionSealed","LoadConnection","MultiConnectionHelper","SimpleConnection","TransactionManager"]};

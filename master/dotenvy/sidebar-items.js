@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Error"],"fn":["dotenv","dotenv_iter","from_filename","from_filename_iter","from_path","from_path_iter","from_read","from_read_iter","var","vars"],"type":["Result"]};
