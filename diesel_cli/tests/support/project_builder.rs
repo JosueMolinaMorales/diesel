@@ -156,8 +156,8 @@ impl Project {
         migration_path.display().to_string()
     }
 
-    pub fn create_migration(&self, name: &str, up: &str, down: Option<&str>) {
-        self.create_migration_in_directory("migrations", name, up, down);
+    pub fn create_migration(&self, name: &str, up: &str, down: Option<&str>, metadata_toml_contents: Option<&str>) {
+        self.create_migration_in_directory("migrations", name, up, down, metadata_toml_contents);
     }
 
     pub fn create_migration_in_directory(
@@ -166,6 +166,7 @@ impl Project {
         name: &str,
         up: &str,
         down: Option<&str>,
+        metadata_toml_contents: Option<&str>,
     ) {
         let migration_path = self.directory.path().join(directory).join(name);
         fs::create_dir(&migration_path)
@@ -176,6 +177,11 @@ impl Project {
         if let Some(down) = down {
             let mut down_file = fs::File::create(migration_path.join("down.sql")).unwrap();
             down_file.write_all(down.as_bytes()).unwrap();
+        }
+
+        if let Some(metadata_toml_contents) = metadata_toml_contents {
+            let mut metadata_file = fs::File::create(migration_path.join("metadata.toml")).unwrap();
+            metadata_file.write_all(metadata_toml_contents.as_bytes()).unwrap();
         }
     }
 }

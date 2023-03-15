@@ -1,12 +1,48 @@
 use crate::support::{database, project};
 
 #[test]
+fn migration_redo_runs_a_transaction_when_run_in_transaction_is_true() {
+    let p = project("migration_redo_runs_a_transaction_when_run_in_transaction_is_true")
+        .folder("migrations")
+        .build();
+
+    p.create_migration_in_directory(
+        "migrations",
+        "12345_example_transaction_migration",
+        "BEGIN TRANSACTION; COMMIT TRANSACTION;",
+        Some("BEGIN TRANSACTION; COMMIT TRANSACTION;"),
+        Some(r#"
+        run_in_transaction: true
+        "#),
+    );
+
+    // Make sure the project is setup
+    p.command("setup").run();
+
+    let result = p.command("migration").arg("redo").run();
+
+    let expected_stdout = "\
+    Rolling back migration 12345_example_transaction_migration
+    Running migration 12345_example_transaction_migration
+    ";
+
+    assert!(result.is_success(), "Result was unsuccessful {:?}", result);
+    assert!(
+        result.stdout().contains(expected_stdout),
+        "Unexpected stdout {}",
+        result.stdout()
+    );
+    
+}
+
+#[test]
 fn migration_redo_runs_the_last_migration_down_and_up() {
     let p = project("migration_redo").folder("migrations").build();
     p.create_migration(
         "12345_create_users_table",
         "CREATE TABLE users (id INTEGER PRIMARY KEY);",
         Some("DROP TABLE users;"),
+        None,
     );
 
     // Make sure the project is setup
@@ -38,18 +74,21 @@ fn migration_redo_runs_the_last_two_migrations_down_and_up() {
         "2017-08-31-210424_create_customers",
         "CREATE TABLE customers ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE customers"),
+        None,
     );
 
     p.create_migration(
         "2017-09-03-210424_create_contracts",
         "CREATE TABLE contracts ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE contracts"),
+        None,
     );
 
     p.create_migration(
         "2017-09-12-210424_create_bills",
         "CREATE TABLE bills ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE bills"),
+        None,
     );
 
     // Make sure the project is setup
@@ -88,6 +127,7 @@ fn migration_redo_respects_migration_dir_var() {
         "12345_create_users_table",
         "CREATE TABLE users (id INTEGER PRIMARY KEY);",
         Some("DROP TABLE users;"),
+        None,
     );
 
     // Make sure the project is setup
@@ -121,6 +161,7 @@ fn migration_redo_respects_migration_dir_env() {
         "12345_create_users_table",
         "CREATE TABLE users (id INTEGER PRIMARY KEY);",
         Some("DROP TABLE users;"),
+        None,
     );
 
     // Make sure the project is setup
@@ -154,6 +195,7 @@ fn error_migrations_fails() {
         "redo_error_migrations_fails",
         "CREATE TABLE users (id INTEGER PRIMARY KEY);",
         Some("DROP TABLE users};"),
+        None,
     );
 
     // Make sure the project is setup
@@ -185,6 +227,7 @@ fn migration_redo_respects_migrations_dir_from_diesel_toml() {
         "12345_create_users_table",
         "CREATE TABLE users (id INTEGER PRIMARY KEY);",
         Some("DROP TABLE users;"),
+        None,
     );
 
     // Make sure the project is setup
@@ -216,18 +259,21 @@ fn migration_redo_all_runs_all_migrations_down_and_up() {
         "2017-08-31-210424_create_customers",
         "CREATE TABLE customers ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE customers"),
+        None,
     );
 
     p.create_migration(
         "2017-09-03-210424_create_contracts",
         "CREATE TABLE contracts ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE contracts"),
+        None,
     );
 
     p.create_migration(
         "2017-09-12-210424_create_bills",
         "CREATE TABLE bills ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE bills"),
+        None,
     );
 
     // Make sure the project is setup
@@ -269,18 +315,21 @@ fn migration_redo_with_more_than_max_should_redo_all() {
         "2017-08-31-210424_create_customers",
         "CREATE TABLE customers ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE customers"),
+        None,
     );
 
     p.create_migration(
         "2017-09-03-210424_create_contracts",
         "CREATE TABLE contracts ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE contracts"),
+        None,
     );
 
     p.create_migration(
         "2017-09-12-210424_create_bills",
         "CREATE TABLE bills ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE bills"),
+        None,
     );
 
     // Make sure the project is setup
@@ -356,6 +405,7 @@ fn migration_redo_with_zero_should_not_revert_any_migration() {
         "2017-08-31-210424_create_customers",
         "CREATE TABLE customers ( id INTEGER PRIMARY KEY )",
         Some("DROP TABLE customers"),
+        None,
     );
 
     // Make sure the project is setup
